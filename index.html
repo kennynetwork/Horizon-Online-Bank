@@ -1,6 +1,2297 @@
-<html>
-  <head>
-  <title>online bank</title>
+
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon Bank - Online Banking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include html2canvas and jsPDF libraries for receipt saving -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --accent: #60a5fa;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --card-bg: #ffffff;
+            --body-bg: #f1f5f9;
+            --text-color: #0f172a;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background-color: var(--body-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.8rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info span {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: white;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            object-fit: cover;
+        }
+        
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            flex: 1;
+            min-width: 220px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            height: fit-content;
+            transition: var(--transition);
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover {
+            background-color: var(--light);
+            color: var(--primary);
+        }
+        
+        .nav-link.active {
+            background-color: rgba(30, 58, 138, 0.1);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-link i {
+            width: 18px;
+            text-align: center;
+        }
+        
+        /* Main Panel */
+        .main-panel {
+            flex: 3;
+            min-width: 300px;
+        }
+        
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            transition: var(--transition);
+        }
+        
+        /* SMALLER BALANCE CARD */
+        .balance-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            min-height: auto;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .balance {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 8px 0;
+        }
+        
+        .balance-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .positive {
+            color: #10b981;
+        }
+        
+        .negative {
+            color: var(--danger);
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            width: 90px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.85rem;
+        }
+        
+        .action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .action-btn i {
+            font-size: 1.3rem;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--gray);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        /* Transactions */
+        .transactions {
+            margin-top: 25px;
+        }
+        
+        .transaction-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+        
+        .transaction-item:hover {
+            background-color: var(--light);
+        }
+        
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .transaction-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .sent {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .received {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .transaction-details h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        
+        .transaction-details p {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+        
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-left: 4px solid #10b981;
+        }
+        
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+        
+        /* Receipt Modal */
+        .receipt-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 15px;
+        }
+        
+        .receipt-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            max-width: 450px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 12px;
+        }
+        
+        .receipt-details {
+            margin: 15px 0;
+        }
+        
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+            font-size: 0.9rem;
+        }
+        
+        .receipt-row strong {
+            color: var(--primary);
+        }
+        
+        .receipt-total {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 2px solid var(--primary);
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        /* Settings List */
+        .settings-list {
+            list-style: none;
+        }
+        
+        .settings-item {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+        
+        .settings-item:hover {
+            background-color: var(--light);
+        }
+        
+        .settings-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .settings-item-content {
+            margin-top: 12px;
+            display: none;
+        }
+        
+        .settings-item.active .settings-item-content {
+            display: block;
+        }
+        
+        .settings-item.active .fa-chevron-right {
+            transform: rotate(90deg);
+        }
+        
+        /* Profile Picture Upload */
+        .profile-picture-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-picture {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .file-upload-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+        
+        .file-upload-label:hover {
+            background-color: var(--secondary);
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            width: 35px;
+            height: 35px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin: 15px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .balance-card {
+                grid-column: span 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .quick-actions {
+                justify-content: center;
+            }
+            
+            .action-btn {
+                width: 75px;
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+            
+            .action-btn i {
+                font-size: 1.1rem;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .balance {
+                font-size: 1.8rem;
+            }
+        }
+        
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .login-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .login-header h2 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+        }
+        
+        .login-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .login-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .login-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            display: none;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 0.75rem;
+            padding: 5px 0;
+        }
+        
+        .bottom-nav-item.active {
+            color: var(--primary);
+        }
+        
+        .bottom-nav-item i {
+            font-size: 1.1rem;
+            margin-bottom: 3px;
+        }
+        
+        @media (max-width: 768px) {
+            .bottom-nav {
+                display: flex;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .main-panel {
+                flex: 1;
+                margin-bottom: 60px;
+            }
+        }
+        
+        /* New styles for receipt saving */
+        .receipt-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+    </style>
 </head>
-  </html>
-  
+<body>
+    <!-- Login Screen (Initial View) -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo" style="justify-content: center; margin-bottom: 10px;">
+                    <i class="fas fa-university"></i>
+                    <h1 style="color: var(--primary);">Horizon Bank</h1>
+                </div>
+                <h2>Welcome to Horizon Bank</h2>
+                <p>Please login or create an account</p>
+            </div>
+            
+            <div class="login-tabs">
+                <button class="login-tab active" data-tab="login">Login</button>
+                <button class="login-tab" data-tab="signup">Create Account</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="loginUsername" class="form-label">Username</label>
+                    <input type="text" id="loginUsername" class="form-control" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="twoFACode" class="form-label">2FA Code</label>
+                    <input type="text" id="twoFACode" class="form-control" placeholder="Enter 2FA code" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Login to Your Account</button>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signupForm" class="login-form hidden">
+                <div class="form-group">
+                    <label for="signupFullName" class="form-label">Full Name</label>
+                    <input type="text" id="signupFullName" class="form-control" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signupEmail" class="form-label">Email Address</label>
+                    <input type="email" id="signupEmail" class="form-control" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signupUsername" class="form-label">Username</label>
+                    <input type="text" id="signupUsername" class="form-control" placeholder="Choose a username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signupPassword" class="form-label">Password</label>
+                    <input type="password" id="signupPassword" class="form-control" placeholder="Create a password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup2FA" class="form-label">2FA Code</label>
+                    <input type="text" id="signup2FA" class="form-control" placeholder="Enter 2FA code" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            </form>
+            
+            <div class="alert alert-danger" id="loginAlert" style="margin-top: 15px; display: none;">
+                Invalid credentials or 2FA code.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Banking Interface (Hidden Initially) -->
+    <div id="bankingInterface" class="hidden">
+        <!-- Header -->
+        <header>
+            <div class="container header-container">
+                <div class="logo">
+                    <i class="fas fa-university"></i>
+                    <h1>Horizon Bank</h1>
+                </div>
+                <div class="header-controls">
+                    <div class="user-info">
+                        <span id="userDisplayName">Welcome, User</span>
+                        <div class="avatar" id="userAvatar">
+                            <img src="" alt="Profile" class="avatar-img" id="userAvatarImg" style="display: none;">
+                            <span id="userAvatarText">U</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="container main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="sendMoney">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Money
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="transactions">
+                            <i class="fas fa-history"></i>
+                            History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="loan">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            Get Loan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="settings">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+            
+            <!-- Main Panel -->
+            <main class="main-panel">
+                <!-- Alert Messages -->
+                <div class="alert alert-success" id="successAlert" style="display: none;">
+                    Transaction successful! Money has been sent.
+                </div>
+                
+                <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                    Error: Insufficient funds to complete this transaction.
+                </div>
+                
+                <!-- Dashboard Section -->
+                <section id="dashboardSection" class="section">
+                    <div class="dashboard-cards">
+                        <!-- SMALLER BALANCE CARD -->
+                        <div class="card balance-card">
+                            <div class="card-header">
+                                <h2 class="card-title">Your Balance</h2>
+                                <i class="fas fa-wallet fa-lg"></i>
+                            </div>
+                            <div class="balance">$<span id="currentBalance">5,250.75</span></div>
+                            <div class="balance-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+2.5% from last month</span>
+                            </div>
+                            
+                            <div class="quick-actions">
+                                <!-- Only 3 buttons: Send Money, Get Loan, and View Receipt -->
+                                <button class="action-btn" data-section="sendMoney">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>Send Money</span>
+                                </button>
+                                <button class="action-btn" data-section="loan">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                    <span>Get Loan</span>
+                                </button>
+                                <button class="action-btn" id="viewReceiptBtn">
+                                    <i class="fas fa-receipt"></i>
+                                    <span>View Receipt</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Recent Transactions</h2>
+                                <a href="#" data-section="transactions" style="font-size: 0.85rem;">View All</a>
+                            </div>
+                            <div class="spinner" id="recentTransactionsSpinner" style="display: none;"></div>
+                            <ul class="transaction-list" id="recentTransactions">
+                                <!-- Recent transactions will be loaded here -->
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Send Money Section -->
+                <section id="sendMoneySection" class="section hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Send Money</h2>
+                        </div>
+                        
+                        <form id="sendMoneyForm">
+                            <div class="form-group">
+                                <label for="recipientName" class="form-label">Recipient Full Name</label>
+                                <input type="text" id="recipientName" class="form-control" placeholder="John Doe" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="recipientAccount" class="form-label">Recipient Account Number</label>
+                                <input type="text" id="recipientAccount" class="form-control" placeholder="Enter account number" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bankSelect" class="form-label">Select Bank or Enter Bank Name</label>
+                                <select id="bankSelect" class="form-control">
+                                    <option value="">Select a bank or enter below</option>
+                                    <option value="chase">Chase Bank</option>
+                                    <option value="boa">Bank of America</option>
+                                    <option value="wells">Wells Fargo</option>
+                                    <option value="citibank">Citibank</option>
+                                    <option value="usbank">U.S. Bank</option>
+                                    <option value="hsbc">HSBC Bank</option>
+                                    <option value="barclays">Barclays</option>
+                                    <option value="lloyds">Lloyds Bank</option>
+                                    <option value="natwest">NatWest</option>
+                                    <option value="halifax">Halifax</option>
+                                    <option value="custom">Enter custom bank name</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="customBankGroup" style="display: none;">
+                                <label for="customBankName" class="form-label">Enter Bank Name</label>
+                                <input type="text" id="customBankName" class="form-control" placeholder="Enter bank name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sendAmount" class="form-label">Amount ($)</label>
+                                <input type="number" id="sendAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sendDescription" class="form-label">Description</label>
+                                <input type="text" id="sendDescription" class="form-control" placeholder="Payment for dinner, rent, etc.">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block">Send Money</button>
+                        </form>
+                    </div>
+                    
+                    <div class="card transactions">
+                        <div class="card-header">
+                            <h2 class="card-title">Recent Transfers</h2>
+                        </div>
+                        <ul class="transaction-list" id="recentRecipients">
+                            <!-- Recent recipients will be loaded here -->
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Transactions Section -->
+                <section id="transactionsSection" class="section hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Transaction History</h2>
+                            <div>
+                                <select id="transactionFilter" class="form-control" style="width: auto; display: inline-block; font-size: 0.9rem;">
+                                    <option value="all">All Transactions</option>
+                                    <option value="sent">Sent</option>
+                                    <option value="received">Received</option>
+                                    <option value="loan">Loan</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="spinner" id="allTransactionsSpinner" style="display: none;"></div>
+                        <ul class="transaction-list" id="allTransactions">
+                            <!-- All transactions will be loaded here -->
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Loan Section -->
+                <section id="loanSection" class="section hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Apply for Loan</h2>
+                        </div>
+                        
+                        <div class="alert alert-success" style="margin-bottom: 15px;">
+                            <p><strong>Loan Offer:</strong> You're eligible for up to $100,000</p>
+                            <p><strong>Interest Rate:</strong> 5% APR</p>
+                            <p><strong>Repayment:</strong> 60 months term</p>
+                        </div>
+                        
+                        <form id="loanForm">
+                            <div class="form-group">
+                                <label for="loanFullName" class="form-label">Full Name</label>
+                                <input type="text" id="loanFullName" class="form-control" placeholder="Enter your full name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="loanEmail" class="form-label">Email Address</label>
+                                <input type="email" id="loanEmail" class="form-control" placeholder="Enter your email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="loanAddress" class="form-label">Address</label>
+                                <input type="text" id="loanAddress" class="form-control" placeholder="Enter your full address" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="loanSSN" class="form-label">Social Security Number (SSN)</label>
+                                <input type="text" id="loanSSN" class="form-control" placeholder="XXX-XX-XXXX" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="loanAmount" class="form-label">Loan Amount ($)</label>
+                                <input type="number" id="loanAmount" class="form-control" placeholder="Enter amount (max: 100,000)" min="100" max="100000" step="100" required>
+                                <small style="color: var(--gray); font-size: 0.85rem;">Maximum loan amount: $100,000</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block">Apply for Loan</button>
+                        </form>
+                    </div>
+                </section>
+                
+                <!-- Settings Section -->
+                <section id="settingsSection" class="section hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Settings</h2>
+                        </div>
+                        
+                        <ul class="settings-list">
+                            <!-- Profile Settings -->
+                            <li class="settings-item active" id="profileSettings">
+                                <div class="settings-item-header">
+
+div>
+                                        <h3 style="font-size: 1rem;"><i class="fas fa-user-circle"></i> Profile Settings</h3>
+                                        <p style="color: var(--gray); font-size: 0.85rem; margin-top: 3px;">Update your personal information</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                                <div class="settings-item-content">
+                                    <div class="profile-picture-container">
+                                        <img src="" alt="Profile Picture" class="profile-picture" id="profilePicture">
+                                        <div class="file-upload">
+                                            <input type="file" id="profilePictureInput" accept="image/*">
+                                            <label for="profilePictureInput" class="file-upload-label">
+                                                <i class="fas fa-camera"></i> Change Photo
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <form id="profileForm">
+                                        <div class="form-group">
+                                            <label for="profileFullName" class="form-label">Full Name</label>
+                                            <input type="text" id="profileFullName" class="form-control" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="profileEmail" class="form-label">Email Address</label>
+                                            <input type="email" id="profileEmail" class="form-control" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="profileAddress" class="form-label">Address</label>
+                                            <input type="text" id="profileAddress" class="form-control" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="profileSSN" class="form-label">Social Security Number (SSN)</label>
+                                            <input type="text" id="profileSSN" class="form-control" required>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                                    </form>
+                                </div>
+                            </li>
+                            
+                            <!-- Change Password -->
+                            <li class="settings-item" id="passwordSettings">
+                                <div class="settings-item-header">
+                                    <div>
+                                        <h3 style="font-size: 1rem;"><i class="fas fa-key"></i> Change Password</h3>
+                                        <p style="color: var(--gray); font-size: 0.85rem; margin-top: 3px;">Update your account password</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                                <div class="settings-item-content">
+                                    <form id="passwordForm">
+                                        <div class="form-group">
+                                            <label for="currentPassword" class="form-label">Current Password</label>
+                                            <input type="password" id="currentPassword" class="form-control" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="newPassword" class="form-label">New Password</label>
+                                            <input type="password" id="newPassword" class="form-control" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                            <input type="password" id="confirmPassword" class="form-control" required>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary">Change Password</button>
+                                    </form>
+                                </div>
+                            </li>
+                            
+                            <!-- Security Settings -->
+                            <li class="settings-item" id="securitySettings">
+                                <div class="settings-item-header">
+                                    <div>
+                                        <h3 style="font-size: 1rem;"><i class="fas fa-shield-alt"></i> Security</h3>
+                                        <p style="color: var(--gray); font-size: 0.85rem; margin-top: 3px;">Manage security settings</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                                <div class="settings-item-content">
+                                    <div class="form-group">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
+                                            <input type="checkbox" id="twoFactorAuth" style="width: auto;">
+                                            Enable Two-Factor Authentication
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
+                                            <input type="checkbox" id="loginAlerts" style="width: auto;" checked>
+                                            Receive login alerts
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
+                                            <input type="checkbox" id="transactionAlerts" style="width: auto;" checked>
+                                            Receive transaction alerts
+                                        </label>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary" id="saveSecurityBtn">Save Security Settings</button>
+                                </div>
+                            </li>
+                            
+                            <!-- Language Settings -->
+                            <li class="settings-item" id="languageSettings">
+                                <div class="settings-item-header">
+                                    <div>
+                                        <h3 style="font-size: 1rem;"><i class="fas fa-language"></i> Language</h3>
+                                        <p style="color: var(--gray); font-size: 0.85rem; margin-top: 3px;">Select your preferred language</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                                <div class="settings-item-content">
+                                    <div class="form-group">
+                                        <select class="form-control" id="languageSelect">
+                                            <option value="en">English</option>
+                                            <option value="es">Spanish</option>
+                                            <option value="fr">French</option>
+                                            <option value="de">German</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" id="saveLanguageBtn">Save Language</button>
+                                </div>
+                            </li>
+                            
+                            <!-- Logout -->
+                            <li class="settings-item" id="logoutSettings">
+                                <div class="settings-item-header" style="cursor: pointer;">
+                                    <div>
+                                        <h3 style="font-size: 1rem;"><i class="fas fa-sign-out-alt"></i> Log Out</h3>
+                                        <p style="color: var(--gray); font-size: 0.85rem; margin-top: 3px;">Sign out of your account</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </main>
+        </div>
+        
+        <!-- Receipt Modal -->
+        <div class="receipt-modal" id="receiptModal">
+            <div class="receipt-content" id="receiptToSave">
+                <div class="receipt-header">
+                    <h2 style="font-size: 1.3rem;"><i class="fas fa-university"></i> Horizon Bank</h2>
+                    <h3 style="font-size: 1.1rem;">Transaction Receipt</h3>
+                    <p id="receiptDate" style="font-size: 0.9rem;"></p>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-row">
+                        <span>Transaction ID:</span>
+                        <strong id="receiptId"></strong>
+                    </div>
+                    <div class="receipt-row">
+                        <span>From:</span>
+                        <span id="receiptFrom"></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>To:</span>
+                        <span id="receiptTo"></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Bank:</span>
+                        <span id="receiptBank"></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Account:</span>
+                        <span id="receiptAccount"></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Description:</span>
+                        <span id="receiptDescription"></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Date & Time:</span>
+                        <span id="receiptDateTime"></span>
+                    </div>
+                </div>
+                
+                <div class="receipt-total">
+                    <div class="receipt-row">
+                        <span>Amount:</span>
+                        <strong id="receiptAmount"></strong>
+                    </div>
+                </div>
+                
+                <div class="receipt-buttons">
+                    <button class="btn btn-success" id="saveReceiptBtn">
+                        <i class="fas fa-download"></i> Save Receipt
+                    </button>
+                    <button class="btn btn-primary" id="printReceiptBtn">
+                        <i class="fas fa-print"></i> Print Receipt
+                    </button>
+                    <button class="btn btn-secondary" id="closeReceiptBtn">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation (Mobile Only) -->
+        <nav class="bottom-nav">
+            <a href="#" class="bottom-nav-item active" data-section="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="sendMoney">
+                <i class="fas fa-paper-plane"></i>
+                <span>Send</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="transactions">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="copyright">
+                    <p style="text-align: center; font-size: 0.8rem; color: var(--gray); padding: 10px 0;">&copy; 2023 Horizon Bank. All rights reserved. This is a demo application for educational purposes only.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Application State
+        const state = {
+            currentUser: null,
+            balance: 5250.75,
+            lastTransaction: null,
+            transactions: [
+                { id: 1, type: 'sent', name: 'John Smith', account: '1234-5678-9012', bank: 'Chase Bank', amount: 250.00, date: '2023-10-15', time: '14:30', description: 'Dinner payment' },
+                { id: 2, type: 'received', name: 'Sarah Johnson', account: '9876-5432-1098', bank: 'Bank of America', amount: 1200.00, date: '2023-10-10', time: '09:15', description: 'Freelance work' },
+                { id: 3, type: 'sent', name: 'Mike Wilson', account: '5678-9012-3456', bank: 'Wells Fargo', amount: 75.50, date: '2023-10-05', time: '16:45', description: 'Movie tickets' },
+                { id: 4, type: 'received', name: 'Emily Davis', account: '3456-7890-1234', bank: 'Citibank', amount: 500.00, date: '2023-10-01', time: '11:20', description: 'Trip reimbursement' }
+            ],
+            recipients: [
+                { name: 'John Smith', account: '1234-5678-9012', bank: 'Chase Bank', lastSent: '2023-10-15' },
+                { name: 'Mike Wilson', account: '5678-9012-3456', bank: 'Wells Fargo', lastSent: '2023-10-05' }
+            ],
+            users: []
+        };
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const bankingInterface = document.getElementById('bankingInterface');
+        const loginTabs = document.querySelectorAll('.login-tab');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const loginAlert = document.getElementById('loginAlert');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userAvatar = document.getElementById('userAvatar');
+        const userAvatarImg = document.getElementById('userAvatarImg');
+        const userAvatarText = document.getElementById('userAvatarText');
+        const currentBalance = document.getElementById('currentBalance');
+        const recentTransactions = document.getElementById('recentTransactions');
+        const allTransactions = document.getElementById('allTransactions');
+        const recentRecipients = document.getElementById('recentRecipients');
+        const transactionFilter = document.getElementById('transactionFilter');
+        const sendMoneyForm = document.getElementById('sendMoneyForm');
+        const bankSelect = document.getElementById('bankSelect');
+        const customBankGroup = document.getElementById('customBankGroup');
+        const customBankName = document.getElementById('customBankName');
+        const loanForm = document.getElementById('loanForm');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.section');
+        const viewReceiptBtn = document.getElementById('viewReceiptBtn');
+        const actionBtns = document.querySelectorAll('.action-btn');
+        const receiptModal = document.getElementById('receiptModal');
+        const closeReceiptBtn = document.getElementById('closeReceiptBtn');
+        const printReceiptBtn = document.getElementById('printReceiptBtn');
+        const saveReceiptBtn = document.getElementById('saveReceiptBtn');
+        const settingsItems = document.querySelectorAll('.settings-item');
+        const profilePicture = document.getElementById('profilePicture');
+        const profilePictureInput = document.getElementById('profilePictureInput');
+        const profileForm = document.getElementById('profileForm');
+        const passwordForm = document.getElementById('passwordForm');
+        const languageSelect = document.getElementById('languageSelect');
+        const saveLanguageBtn = document.getElementById('saveLanguageBtn');
+        const saveSecurityBtn = document.getElementById('saveSecurityBtn');
+        const logoutSettings = document.getElementById('logoutSettings');
+        const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+
+        // Initialize the application
+        function initApp() {
+            // Check if user is already logged in
+            const savedUser = localStorage.getItem('bankUser');
+            if (savedUser) {
+                state.currentUser = JSON.parse(savedUser);
+                showBankingInterface();
+            }
+            
+            // Load saved users
+            const savedUsers = localStorage.getItem('bankUsers');
+            if (savedUsers) {
+                state.users = JSON.parse(savedUsers);
+            }
+            
+            // Format balance with commas
+            formatBalance();
+            
+            // Load initial data
+            loadRecentTransactions();
+            loadAllTransactions();
+            loadRecentRecipients();
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Login/Signup tabs
+            loginTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    loginTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show selected form
+                    if (tabId === 'login') {
+                        loginForm.classList.remove('hidden');
+                        signupForm.classList.add('hidden');
+                    } else {
+                        loginForm.classList.add('hidden');
+                        signupForm.classList.remove('hidden');
+                    }
+                    
+                    // Clear any alerts
+                    loginAlert.style.display = 'none';
+                });
+            });
+            
+            // Login form submission
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                const twoFA = document.getElementById('twoFACode').value;
+                
+                // Check 2FA code (hidden from user)
+                if (twoFA !== '3EB297DD') {
+                    loginAlert.textContent = 'Invalid 2FA code.';
+                    loginAlert.style.display = 'block';
+                    return;
+                }
+                
+                // Find user
+                const user = state.users.find(u => u.username === username && u.password === password);
+                
+                if (user || (username && password)) {
+                    if (!user) {
+                        // Create demo user
+                        state.currentUser = {
+                            name: username.charAt(0).toUpperCase() + username.slice(1),
+                            email: `${username}@example.com`,
+                            username: username,
+                            initials: username.charAt(0).toUpperCase(),
+                            address: '123 Main St, City, State',
+                            ssn: 'XXX-XX-XXXX',
+                            profilePicture: ''
+                        };
+                    } else {
+                        state.currentUser = user;
+                    }
+                    
+                    // Save to localStorage
+                    localStorage.setItem('bankUser', JSON.stringify(state.currentUser));
+                    
+                    showBankingInterface();
+                } else {
+                    loginAlert.textContent = 'Invalid credentials. You can create an account.';
+                    loginAlert.style.display = 'block';
+                }
+            });
+            
+            // Signup form submission
+            signupForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fullName = document.getElementById('signupFullName').value;
+                const email = document.getElementById('signupEmail').value;
+                const username = document.getElementById('signupUsername').value;
+                const password = document.getElementById('signupPassword').value;
+                const twoFA = document.getElementById('signup2FA').value;
+                
+                // Check 2FA code (hidden from user)
+                if (twoFA !== '3EB297DD') {
+                    loginAlert.textContent = 'Invalid 2FA code.';
+                    loginAlert.style.display = 'block';
+                    return;
+                }
+                
+                // Check if username exists
+                const userExists = state.users.some(u => u.username === username);
+                if (userExists) {
+                    loginAlert.textContent = 'Username already exists. Choose another.';
+                    loginAlert.style.display = 'block';
+                    return;
+                }
+                
+                // Create new user
+                const newUser = {
+                    name: fullName,
+                    email: email,
+                    username: username,
+                    password: password,
+                    initials: fullName.charAt(0).toUpperCase(),
+                    address: '',
+                    ssn: '',
+                    profilePicture: '',
+                    balance: 1000.00,
+                    createdAt: new Date().toISOString()
+                };
+                
+                state.users.push(newUser);
+                state.currentUser = newUser;
+                
+                // Save users to localStorage
+                localStorage.setItem('bankUsers', JSON.stringify(state.users));
+                localStorage.setItem('bankUser', JSON.stringify(newUser));
+                
+                // Update balance
+                state.balance = newUser.balance;
+                
+                showBankingInterface();
+                showSuccessAlert('Account created successfully! Welcome to Horizon Bank.');
+            });
+            
+            // Bank selection for custom bank name
+            bankSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customBankGroup.style.display = 'block';
+                    customBankName.required = true;
+                } else {
+                    customBankGroup.style.display = 'none';
+                    customBankName.required = false;
+                }
+            });
+            
+            // Navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sectionId = this.getAttribute('data-section');
+                    
+                    // Update active nav link
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update bottom nav
+                    updateBottomNav(sectionId);
+                    
+                    // Show selected section
+                    showSection(sectionId);
+                    
+                    // Load profile data when settings is opened
+                    if (sectionId === 'settings') {
+                        loadProfileData();
+                    }
+                });
+            });
+            
+            // Bottom navigation
+            bottomNavItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sectionId = this.getAttribute('data-section');
+                    
+                    // Update bottom nav
+                    bottomNavItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update sidebar nav
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    const sidebarLink = document.querySelector(`[data-section="${sectionId}"]`);
+                    if (sidebarLink) {
+                        sidebarLink.classList.add('active');
+                    }
+                    
+                    // Show selected section
+                    showSection(sectionId);
+                    
+                    // Load profile data when settings is opened
+                    if (sectionId === 'settings') {
+                        loadProfileData();
+                    }
+                });
+            });
+            
+            // Quick action buttons - now only 3 buttons
+            actionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sectionId = this.getAttribute('data-section');
+                    if (sectionId) {
+                        // Update active nav link
+                        navLinks.forEach(nav => nav.classList.remove('active'));
+                        document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+                        
+                        // Update bottom nav
+                        updateBottomNav(sectionId);
+                        
+                        // Show selected section
+                        showSection(sectionId);
+                        
+                        // Load profile data when settings is opened
+                        if (sectionId === 'settings') {
+                            loadProfileData();
+                        }
+                    }
+                });
+            });
+            
+            // View receipt button
+            viewReceiptBtn.addEventListener('click', function() {
+                if (state.lastTransaction) {
+                    showReceipt(state.lastTransaction);
+                } else {
+                    showErrorAlert("No recent transaction to show receipt for");
+                }
+            });
+            
+            // Send money form
+            sendMoneyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('recipientName').value;
+                const account = document.getElementById('recipientAccount').value;
+                const bankSelectValue = bankSelect.value;
+                let bankName;
+                
+                if (bankSelectValue === 'custom') {
+                    bankName = customBankName.value;
+                    if (!bankName) {
+                        showErrorAlert("Please enter bank name");
+                        return;
+                    }
+                } else {
+                    bankName = bankSelect.options[bankSelect.selectedIndex].text;
+                }
+                
+                const amount = parseFloat(document.getElementById('sendAmount').value);
+                const description = document.getElementById('sendDescription').value;
+                
+                if (amount <= 0) {
+                    showErrorAlert("Amount must be greater than 0");
+                    return;
+                }
+                
+                if (amount > state.balance) {
+                    showErrorAlert("Insufficient funds");
+                    return;
+                }
+                
+                // Process the transaction
+                processTransaction('sent', name, account, bankName, amount, description);
+                
+                // Add to recent recipients if not already there
+                const existingRecipient = state.recipients.find(r => r.account === account);
+                if (!existingRecipient) {
+                    state.recipients.unshift({
+                        name: name,
+                        account: account,
+                        bank: bankName,
+                        lastSent: new Date().toISOString().split('T')[0]
+                    });
+                    loadRecentRecipients();
+                }
+                
+                // Reset form
+                this.reset();
+                customBankGroup.style.display = 'none';
+            });
+            
+            // Loan form
+            loanForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fullName = document.getElementById('loanFullName').value;
+                const email = document.getElementById('loanEmail').value;
+                const address = document.getElementById('loanAddress').value;
+                const ssn = document.getElementById('loanSSN').value;
+                const amount = parseFloat(document.getElementById('loanAmount').value);
+                
+                if (amount <= 0 || amount > 100000) {
+                    showErrorAlert("Loan amount must be between $100 and $100,000");
+                    return;
+                }
+                
+                // Process loan
+                processLoan(fullName, email, address, ssn, amount);
+                
+                // Reset form
+                this.reset();
+            });
+            
+            // Transaction filter
+            transactionFilter.addEventListener('change', loadAllTransactions);
+            
+            // Receipt modal
+            closeReceiptBtn.addEventListener('click', function() {
+                receiptModal.style.display = 'none';
+            });
+            
+            printReceiptBtn.addEventListener('click', function() {
+                // Print the receipt
+                const receiptContent = document.getElementById('receiptToSave').innerHTML;
+                const originalContent = document.body.innerHTML;
+                
+                document.body.innerHTML = receiptContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+                
+                // Re-initialize the app
+                initApp();
+                showSuccessAlert("Receipt printed successfully!");
+            });
+            
+            // Save receipt button
+            saveReceiptBtn.addEventListener('click', saveReceiptAsImage);
+            
+            // Close modal when clicking outside
+            receiptModal.addEventListener('click', function(e) {
+                if (e.target === receiptModal) {
+                    receiptModal.style.display = 'none';
+                }
+            });
+            
+            // Settings items toggle
+            settingsItems.forEach(item => {
+                const header = item.querySelector('.settings-item-header');
+                header.addEventListener('click', function() {
+                    // If it's logout, handle logout
+                    if (item.id === 'logoutSettings') {
+                        state.currentUser = null;
+                        localStorage.removeItem('bankUser');
+                        showLoginScreen();
+                        return;
+                    }
+                    
+                    // Toggle active class
+                    const isActive = item.classList.contains('active');
+                    settingsItems.forEach(i => i.classList.remove('active'));
+                    
+                    if (!isActive) {
+                        item.classList.add('active');
+                    }
+                });
+            });
+            
+            // Profile picture upload
+            profilePictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        profilePicture.src = event.target.result;
+                        userAvatarImg.src = event.target.result;
+                        userAvatarImg.style.display = 'block';
+                        userAvatarText.style.display = 'none';
+                        
+                        // Save to user data
+                        state.currentUser.profilePicture = event.target.result;
+                        updateUserInStorage();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Profile form submission
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('profileFullName').value;
+                const email = document.getElementById('profileEmail').value;
+                const address = document.getElementById('profileAddress').value;
+                const ssn = document.getElementById('profileSSN').value;
+                
+                // Update user data
+                state.currentUser.name = name;
+                state.currentUser.email = email;
+                state.currentUser.address = address;
+                state.currentUser.ssn = ssn;
+                state.currentUser.initials = name.charAt(0).toUpperCase();
+                
+                // Update in storage
+                updateUserInStorage();
+                
+                // Update UI
+                updateUserInfo();
+                
+                showSuccessAlert("Profile updated successfully!");
+            });
+            
+            // Password form submission
+            passwordForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                // Check current password
+                if (currentPassword !== state.currentUser.password) {
+                    showErrorAlert("Current password is incorrect");
+                    return;
+                }
+                
+                // Check if new passwords match
+                if (newPassword !== confirmPassword) {
+                    showErrorAlert("New passwords do not match");
+                    return;
+                }
+                
+                // Update password
+                state.currentUser.password = newPassword;
+                updateUserInStorage();
+                
+                // Reset form
+                passwordForm.reset();
+                
+                showSuccessAlert("Password changed successfully!");
+            });
+            
+            // Language save button
+            saveLanguageBtn.addEventListener('click', function() {
+                const language = languageSelect.value;
+                // In a real app, you would save this preference
+                showSuccessAlert(`Language preference saved: ${languageSelect.options[languageSelect.selectedIndex].text}`);
+            });
+            
+            // Security save button
+            saveSecurityBtn.addEventListener('click', function() {
+                // In a real app, you would save these settings
+                showSuccessAlert("Security settings saved successfully!");
+            });
+        }
+
+        // Save receipt as image/PDF
+        function saveReceiptAsImage() {
+            const receiptElement = document.getElementById('receiptToSave');
+            
+            // Show loading message
+            const originalText = saveReceiptBtn.innerHTML;
+            saveReceiptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveReceiptBtn.disabled = true;
+            
+            // Use html2canvas to capture the receipt
+            html2canvas(receiptElement, {
+                scale: 2, // Higher quality
+                backgroundColor: '#ffffff',
+                useCORS: true
+            }).then(canvas => {
+                // Convert canvas to image data URL
+                const imageData = canvas.toDataURL('image/png');
+                
+                // Create a download link
+                const link = document.createElement('a');
+                const transactionId = document.getElementById('receiptId').textContent;
+                const fileName = `HorizonBank_Receipt_${transactionId}_${new Date().getTime()}.png`;
+                
+                link.href = imageData;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Restore button state
+                saveReceiptBtn.innerHTML = originalText;
+                saveReceiptBtn.disabled = false;
+                
+                showSuccessAlert("Receipt saved successfully to your device!");
+                
+                // Also try to save as PDF if jsPDF is available
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 190;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    pdf.addImage(imageData, 'PNG', 10, 10, imgWidth, imgHeight);
+                    pdf.save(fileName.replace('.png', '.pdf'));
+                } catch (e) {
+                    // PDF saving failed, but we already saved as PNG
+                    console.log("PDF saving not available, PNG saved successfully");
+                }
+            }).catch(error => {
+                console.error("Error saving receipt:", error);
+                saveReceiptBtn.innerHTML = originalText;
+                saveReceiptBtn.disabled = false;
+                showErrorAlert("Failed to save receipt. Please try again.");
+            });
+        }
+
+        // Update user in localStorage
+        function updateUserInStorage() {
+            // Update in localStorage
+            localStorage.setItem('bankUser', JSON.stringify(state.currentUser));
+            
+            // Update in users array
+            const userIndex = state.users.findIndex(u => u.username === state.currentUser.username);
+            if (userIndex !== -1) {
+                state.users[userIndex] = state.currentUser;
+                localStorage.setItem('bankUsers', JSON.stringify(state.users));
+            }
+        }
+
+        // Show login screen
+        function showLoginScreen() {
+            loginScreen.classList.remove('hidden');
+            bankingInterface.classList.add('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('twoFACode').value = '';
+        }
+
+        // Show banking interface
+        function showBankingInterface() {
+            loginScreen.classList.add('hidden');
+            bankingInterface.classList.remove('hidden');
+            
+            // Update user info
+            updateUserInfo();
+            
+            // Show dashboard by default
+            showSection('dashboard');
+            updateBottomNav('dashboard');
+        }
+
+        // Update user info in UI
+        function updateUserInfo() {
+            if (state.currentUser) {
+                userDisplayName.textContent = `Welcome, ${state.currentUser.name}`;
+                userAvatarText.textContent = state.currentUser.initials;
+                
+                // Set profile picture if exists
+                if (state.currentUser.profilePicture) {
+                    userAvatarImg.src = state.currentUser.profilePicture;
+                    userAvatarImg.style.display = 'block';
+                    userAvatarText.style.display = 'none';
+                } else {
+                    userAvatarImg.style.display = 'none';
+                    userAvatarText.style.display = 'block';
+                }
+            }
+        }
+
+        // Load profile data into form
+        function loadProfileData() {
+            if (state.currentUser) {
+                document.getElementById('profileFullName').value = state.currentUser.name || '';
+                document.getElementById('profileEmail').value = state.currentUser.email || '';
+                document.getElementById('profileAddress').value = state.currentUser.address || '';
+                document.getElementById('profileSSN').value = state.currentUser.ssn || '';
+                
+                // Set profile picture
+                if (state.currentUser.profilePicture) {
+                    profilePicture.src = state.currentUser.profilePicture;
+                } else {
+                    profilePicture.src = '';
+                    profilePicture.alt = 'No profile picture';
+                }
+            }
+        }
+
+        // Update bottom navigation
+        function updateBottomNav(sectionId) {
+            bottomNavItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-section') === sectionId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Show specific section
+        function showSection(sectionId) {
+            // Hide all sections
+            sections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(`${sectionId}Section`).classList.remove('hidden');
+        }
+
+        // Format balance with commas
+        function formatBalance() {
+            currentBalance.textContent = state.balance.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Process a transaction
+        function processTransaction(type, name, account, bank, amount, description) {
+            // Simulate network delay
+            showLoading('recentTransactions');
+            
+            setTimeout(() => {
+                // Update balance
+                if (type === 'sent') {
+                    state.balance -= amount;
+                } else {
+                    state.balance += amount;
+                }
+                
+                // Get current date and time
+                const now = new Date();
+                const date = now.toISOString().split('T')[0];
+                const time = now.toTimeString().split(' ')[0].substring(0, 5);
+                
+                // Create transaction record
+                const newTransaction = {
+                    id: state.transactions.length + 1,
+                    type: type,
+                    name: name,
+                    account: account,
+                    bank: bank,
+                    amount: amount,
+                    date: date,
+                    time: time,
+                    description: description || 'Payment',
+                    timestamp: now.toISOString()
+                };
+                
+                // Add to transactions
+                state.transactions.unshift(newTransaction);
+                state.lastTransaction = newTransaction;
+                
+                // Update user balance in storage
+                if (state.currentUser) {
+                    state.currentUser.balance = state.balance;
+                    updateUserInStorage();
+                }
+                
+                // Update UI
+                formatBalance();
+                loadRecentTransactions();
+                loadAllTransactions();
+                
+                // Show success message
+                showSuccessAlert(`Successfully sent $${amount.toFixed(2)} to ${name} at ${bank}`);
+                
+                // Show receipt
+                showReceipt(newTransaction);
+                
+                hideLoading('recentTransactions');
+            }, 800);
+        }
+
+        // Process a loan
+        function processLoan(fullName, email, address, ssn, amount) {
+            showLoading('allTransactions');
+            
+            setTimeout(() => {
+                // Add loan amount to balance
+                state.balance += amount;
+                
+                // Get current date and time
+                const now = new Date();
+                const date = now.toISOString().split('T')[0];
+                const time = now.toTimeString().split(' ')[0].substring(0, 5);
+                
+                // Create loan transaction record
+                const newTransaction = {
+                    id: state.transactions.length + 1,
+                    type: 'loan',
+                    name: 'Horizon Bank Loan',
+                    account: 'LOAN-APP-' + Date.now().toString().slice(-6),
+                    bank: 'Horizon Bank',
+                    amount: amount,
+                    date: date,
+                    time: time,
+                    description: `Loan approved - $${amount.toFixed(2)} at 5% APR`,
+                    timestamp: now.toISOString()
+                };
+                
+                // Add to transactions
+                state.transactions.unshift(newTransaction);
+                state.lastTransaction = newTransaction;
+                
+                // Update user balance in storage
+                if (state.currentUser) {
+                    state.currentUser.balance = state.balance;
+                    updateUserInStorage();
+                }
+                
+                // Update UI
+                formatBalance();
+                loadRecentTransactions();
+                loadAllTransactions();
+                
+                // Show success message
+                showSuccessAlert(`Loan approved! $${amount.toFixed(2)} has been deposited to your account. The money will be sent to you now.`);
+                
+                // Show receipt
+                showReceipt(newTransaction);
+                
+                hideLoading('allTransactions');
+            }, 1500);
+        }
+
+        // Show receipt modal
+        function showReceipt(transaction) {
+            document.getElementById('receiptId').textContent = `TX-${transaction.id.toString().padStart(6, '0')}`;
+            document.getElementById('receiptFrom').textContent = state.currentUser ? state.currentUser.name : 'Your Account';
+            document.getElementById('receiptTo').textContent = transaction.name;
+            document.getElementById('receiptBank').textContent = transaction.bank;
+            document.getElementById('receiptAccount').textContent = transaction.account;
+            document.getElementById('receiptDescription').textContent = transaction.description;
+            document.getElementById('receiptDateTime').textContent = `${transaction.date} at ${transaction.time}`;
+            document.getElementById('receiptAmount').textContent = `$${transaction.amount.toFixed(2)}`;
+            document.getElementById('receiptDate').textContent = new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            receiptModal.style.display = 'flex';
+        }
+
+        // Load recent transactions
+        function loadRecentTransactions() {
+            recentTransactions.innerHTML = '';
+            
+            // Show only the 3 most recent transactions
+            const recent = state.transactions.slice(0, 3);
+            
+            if (recent.length === 0) {
+                recentTransactions.innerHTML = `
+                    <li class="transaction-item" style="justify-content: center; color: var(--gray);">
+                        No recent transactions
+                    </li>
+                `;
+                return;
+            }
+            
+            recent.forEach(transaction => {
+                const listItem = document.createElement('li');
+                listItem.className = 'transaction-item';
+                listItem.style.cursor = 'pointer';
+                listItem.addEventListener('click', () => showReceipt(transaction));
+                
+                listItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-icon ${transaction.type}">
+                            <i class="fas fa-${transaction.type === 'sent' ? 'paper-plane' : transaction.type === 'loan' ? 'hand-holding-usd' : 'money-bill-wave'}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <h4>${transaction.name}</h4>
+                            <p>${transaction.date} at ${transaction.time} • ${transaction.bank}</p>
+                            <p style="font-size: 0.8rem; color: var(--gray);">${transaction.description}</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${transaction.type}">
+                        ${transaction.type === 'sent' ? '-' : '+'}$${transaction.amount.toFixed(2)}
+                    </div>
+                `;
+                
+                recentTransactions.appendChild(listItem);
+            });
+        }
+
+        // Load all transactions
+        function loadAllTransactions() {
+            allTransactions.innerHTML = '';
+            
+            const filter = transactionFilter.value;
+            let filteredTransactions = state.transactions;
+            
+            if (filter !== 'all') {
+                filteredTransactions = state.transactions.filter(t => t.type === filter);
+            }
+            
+            if (filteredTransactions.length === 0) {
+                const listItem = document.createElement('li');
+                listItem.className = 'transaction-item';
+                listItem.innerHTML = `<div style="text-align: center; width: 100%; padding: 15px; color: var(--gray); font-size: 0.9rem;">No transactions found</div>`;
+                allTransactions.appendChild(listItem);
+                return;
+            }
+            
+            filteredTransactions.forEach(transaction => {
+                const listItem = document.createElement('li');
+                listItem.className = 'transaction-item';
+                listItem.style.cursor = 'pointer';
+                listItem.addEventListener('click', () => showReceipt(transaction));
+                
+                listItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-icon ${transaction.type}">
+                            <i class="fas fa-${transaction.type === 'sent' ? 'paper-plane' : transaction.type === 'loan' ? 'hand-holding-usd' : 'money-bill-wave'}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <h4>${transaction.name}</h4>
+                            <p style="font-size: 0.85rem;">Account: ${transaction.account} • ${transaction.bank}</p>
+                            <p style="font-size: 0.85rem;">${transaction.date} at ${transaction.time}</p>
+                            <p style="font-size: 0.8rem; color: var(--gray);">${transaction.description}</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${transaction.type}">
+                        ${transaction.type === 'sent' ? '-' : '+'}$${transaction.amount.toFixed(2)}
+                    </div>
+                `;
+                
+                allTransactions.appendChild(listItem);
+            });
+        }
+
+        // Load recent recipients
+        function loadRecentRecipients() {
+            recentRecipients.innerHTML = '';
+            
+            state.recipients.forEach(recipient => {
+                const listItem = document.createElement('li');
+                listItem.className = 'transaction-item';
+                listItem.style.cursor = 'pointer';
+                
+                listItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-icon" style="background-color: rgba(30, 58, 138, 0.1); color: var(--primary);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <h4>${recipient.name}</h4>
+                            <p style="font-size: 0.85rem;">${recipient.account} • ${recipient.bank}</p>
+                            <p style="font-size: 0.8rem; color: var(--gray);">Last sent: ${recipient.lastSent}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" data-recipient-account="${recipient.account}" data-recipient-name="${recipient.name}" data-recipient-bank="${recipient.bank}">Send</button>
+                    </div>
+                `;
+                
+                recentRecipients.appendChild(listItem);
+            });
+            
+            // Add event listeners to send buttons
+            document.querySelectorAll('[data-recipient-account]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const account = this.getAttribute('data-recipient-account');
+                    const name = this.getAttribute('data-recipient-name');
+                    const bank = this.getAttribute('data-recipient-bank');
+                    
+                    // Switch to send money section
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    document.querySelector('[data-section="sendMoney"]').classList.add('active');
+                    showSection('sendMoney');
+                    updateBottomNav('sendMoney');
+                    
+                    // Fill the form
+                    document.getElementById('recipientName').value = name;
+                    document.getElementById('recipientAccount').value = account;
+                    document.getElementById('bankSelect').value = 'custom';
+                    customBankGroup.style.display = 'block';
+                    customBankName.value = bank;
+                    document.getElementById('sendAmount').focus();
+                });
+            });
+        }
+
+        // Show success alert
+        function showSuccessAlert(message) {
+            successAlert.textContent = message;
+            successAlert.style.display = 'block';
+            
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show error alert
+        function showErrorAlert(message) {
+            errorAlert.textContent = message;
+            errorAlert.style.display = 'block';
+            
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show loading spinner
+        function showLoading(elementId) {
+            const spinner = document.getElementById(elementId + 'Spinner');
+            if (spinner) {
+                spinner.style.display = 'block';
+            }
+        }
+
+        // Hide loading spinner
+        function hideLoading(elementId) {
+            const spinner = document.getElementById(elementId + 'Spinner');
+            if (spinner) {
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Initialize the app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
